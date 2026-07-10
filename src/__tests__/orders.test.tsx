@@ -34,14 +34,14 @@ const mockOrdersResponse = {
 };
 
 const mockStatuses = [{ id: 1, name: 'Criada', status: 'CRIADA' }];
-const mockCustomers = [{ id: 1, name: 'João Silva' }];
+const mockCustomers = { data: [{ id: 1, name: 'João Silva' }], totalPages: 1 };
 const mockTransportTypes = [{ id: 1, name: 'Carreta', type: 'CARRETA' }];
 
 beforeEach(() => {
   jest.clearAllMocks();
   (ordersService.getOrders as jest.Mock).mockResolvedValue(mockOrdersResponse);
   (ordersService.getOrderStatuses as jest.Mock).mockResolvedValue(mockStatuses);
-  (ordersService.getCustomers as jest.Mock).mockResolvedValue({ data: mockCustomers, totalPages: 1 });
+  (ordersService.getCustomers as jest.Mock).mockResolvedValue(mockCustomers);
   (ordersService.getTransportTypes as jest.Mock).mockResolvedValue(mockTransportTypes);
 });
 
@@ -57,6 +57,12 @@ describe('Orders page', () => {
     expect(screen.getAllByText('Carreta').length).toBeGreaterThan(0);
     expect(screen.getAllByText('Criada').length).toBeGreaterThan(0);
     expect(screen.getByText('#1')).toBeInTheDocument();
+  });
+
+  it('exibe a data formatada em pt-BR', async () => {
+    render(<Orders />, { wrapper: createWrapper() });
+    await waitFor(() => expect(screen.getByText('João Silva')).toBeInTheDocument());
+    expect(screen.getByText(/10\/07\/2026/)).toBeInTheDocument();
   });
 
   it('exibe mensagem quando não há ordens', async () => {
@@ -77,15 +83,25 @@ describe('Orders page', () => {
     expect(mockPush).toHaveBeenCalledWith('/orders/new');
   });
 
-  it('chama getOrders com filtros ao alterar o select de status', async () => {
+  it('exibe links de visualização e edição para cada ordem', async () => {
+    render(<Orders />, { wrapper: createWrapper() });
+    await waitFor(() => expect(screen.getByText('#1')).toBeInTheDocument());
+    const links = screen.getAllByRole('link');
+    const orderLinks = links.filter((l) => l.getAttribute('href')?.startsWith('/orders/1'));
+    expect(orderLinks.length).toBeGreaterThanOrEqual(2);
+    expect(orderLinks.some((l) => l.getAttribute('href') === '/orders/1')).toBe(true);
+    expect(orderLinks.some((l) => l.getAttribute('href') === '/orders/1?edit=true')).toBe(true);
+  });
+
+  it('chama getOrders com filtro de status ao alterar o select', async () => {
     render(<Orders />, { wrapper: createWrapper() });
     await waitFor(() => expect(screen.getByText('Criada')).toBeInTheDocument());
-
     const selects = screen.getAllByRole('combobox');
-    fireEvent.change(selects[1], { target: { value: '1' } });
-
+    fireEvent.change(selects[0], { target: { value: '1' } });
     await waitFor(() =>
-      expect(ordersService.getOrders).toHaveBeenCalledWith(1, 10, expect.objectContaining({ orderStatusId: 1 }))
+      expect(ordersService.getOrders).toHaveBeenCalledWith(
+        1, 10, expect.objectContaining({ orderStatusId: 1 }),
+      ),
     );
   });
 });
