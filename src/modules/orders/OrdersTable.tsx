@@ -4,6 +4,7 @@ import { Table, TableBody, TableCell, TableHeader, TableRow } from '@/components
 import Pagination from '@/components/tables/Pagination';
 import Badge from '@/components/ui/badge/Badge';
 import { Order } from './ordersService';
+import { EyeIcon } from '@/icons';
 
 interface Props {
   data: Order[];
@@ -28,7 +29,7 @@ export default function OrdersTable({ data, totalPages, currentPage, onPageChang
           <Table>
             <TableHeader className="border-b border-gray-100 dark:border-white/[0.05]">
               <TableRow>
-                {['#', 'Cliente', 'Transporte', 'Status', 'Itens', 'Data'].map((h) => (
+                {['#', 'Cliente', 'Transporte', 'Status', 'Itens', 'Data', ''].map((h) => (
                   <TableCell
                     key={h}
                     isHeader
@@ -70,6 +71,22 @@ export default function OrdersTable({ data, totalPages, currentPage, onPageChang
                     </TableCell>
                     <TableCell className="px-4 py-3 text-gray-500 text-theme-sm dark:text-gray-400">
                       {new Date(order.createdAt).toLocaleDateString('pt-BR')}
+                    </TableCell>
+                    <TableCell className="px-4 py-3 text-gray-500 text-theme-sm dark:text-gray-400 items-center flex gap-2">
+                      <a
+                        href={`/orders/${order.id}`}
+                        className="text-brand-500 hover:underline dark:text-brand-400"
+                      >
+                        <EyeIcon/>
+                      </a>
+                      {order.orderStatus?.status === 'PLANEJADA' && (
+                        <a
+                          href={`/orders/${order.id}`}
+                          className="text-brand-500 hover:underline dark:text-brand-400"
+                        >
+                          Agendar
+                        </a>
+                      )}
                     </TableCell>
                   </TableRow>
                 ))

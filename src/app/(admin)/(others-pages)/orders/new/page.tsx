@@ -7,7 +7,6 @@ import PageBreadcrumb from '@/components/common/PageBreadCrumb';
 import ComponentCard from '@/components/common/ComponentCard';
 import Autocomplete, { AutocompleteOption } from '@/components/ui/autocomplete/Autocomplete';
 import {
-  getTransportTypes,
   getOrderStatuses,
   searchCustomers,
   searchItems,
@@ -30,20 +29,11 @@ interface FormValues {
 export default function NewOrder() {
   const router = useRouter();
 
-  const { data: transportTypes } = useQuery({
-    queryKey: ['transport-types', watch('customer')?.id],
-    queryFn: () =>
-      watch('customer')
-        ? getAuthorizedTransportTypes(watch('customer')!.id)
-        : Promise.resolve([]),
-    enabled: !!watch('customer'),
-  });
-  const { data: statuses } = useQuery({ queryKey: ['order-statuses'], queryFn: getOrderStatuses });
-
   const {
     control,
     register,
     handleSubmit,
+    watch,
     formState: { errors },
   } = useForm<FormValues>({
     defaultValues: {
@@ -53,6 +43,18 @@ export default function NewOrder() {
       items: [{ item: null, quantity: 1 }],
     },
   });
+
+  const selectedCustomer = watch('customer');
+
+  const { data: transportTypes } = useQuery({
+    queryKey: ['transport-types', selectedCustomer?.id],
+    queryFn: () =>
+      selectedCustomer
+        ? getAuthorizedTransportTypes(selectedCustomer.id)
+        : Promise.resolve([]),
+    enabled: !!selectedCustomer,
+  });
+  const { data: statuses } = useQuery({ queryKey: ['order-statuses'], queryFn: getOrderStatuses });
 
   const { fields, append, remove } = useFieldArray({ control, name: 'items' });
 
