@@ -20,6 +20,7 @@ interface Props {
   onChange: (option: AutocompleteOption | null) => void;
   placeholder?: string;
   required?: boolean;
+  disabled?: boolean;
 }
 
 export default function Autocomplete({
@@ -29,6 +30,7 @@ export default function Autocomplete({
   onChange,
   placeholder = 'Buscar...',
   required,
+  disabled,
 }: Props) {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState('');
@@ -94,15 +96,17 @@ export default function Autocomplete({
       <input
         ref={inputRef}
         type="text"
-        className={inputClass}
+        className={`${inputClass} ${disabled ? 'cursor-not-allowed opacity-60' : ''}`}
         placeholder={placeholder}
         value={open ? search : (value?.name ?? '')}
-        onFocus={handleFocus}
+        onFocus={disabled ? undefined : handleFocus}
         onChange={(e) => setSearch(e.target.value)}
         required={required && !value}
+        readOnly={disabled}
+        disabled={disabled}
       />
 
-      {value && !open && (
+      {value && !open && !disabled && (
         <button
           type="button"
           onClick={handleClear}

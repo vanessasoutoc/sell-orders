@@ -9,3 +9,9 @@ export async function getDashboardSummary(): Promise<DashboardSummary> {
   if (!res.ok) throw new Error('Erro ao buscar resumo do dashboard');
   return res.json();
 }
+
+export async function getRecentOrders(limit = 10): Promise<any[]> {
+  const res = await fetch(`http://localhost:3000/orders?limit=${limit}&sortOrder=desc`);
+  if (!res.ok) throw new Error('Erro ao buscar ordens recentes');
+  return res.json();
+}

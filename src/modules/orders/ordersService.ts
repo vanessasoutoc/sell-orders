@@ -64,6 +64,7 @@ export interface OrderFilters {
   customerId?: number;
   transportTypeId?: number;
   date?: string;
+  sortOrder?: 'asc' | 'desc';
 }
 
 export async function getOrders(page = 1, limit = 10, filters: OrderFilters = {}): Promise<PaginatedOrders> {
@@ -72,6 +73,7 @@ export async function getOrders(page = 1, limit = 10, filters: OrderFilters = {}
   if (filters.customerId) params.set('customerId', String(filters.customerId));
   if (filters.transportTypeId) params.set('transportTypeId', String(filters.transportTypeId));
   if (filters.date) params.set('date', filters.date);
+  if (filters.sortOrder) params.set('sortOrder', filters.sortOrder);
 
   const res = await fetch(`http://localhost:3000/orders?${params.toString()}`);
   if (!res.ok) throw new Error('Erro ao buscar ordens');
@@ -127,6 +129,22 @@ export async function searchItems(page = 1, search = ''): Promise<{ data: Item[]
   if (search) params.set('search', search);
   const res = await fetch(`http://localhost:3000/items/autocomplete?${params.toString()}`);
   if (!res.ok) throw new Error('Erro ao buscar itens');
+  return res.json();
+}
+
+export async function getOrder(id: number): Promise<Order> {
+  const res = await fetch(`http://localhost:3000/orders/${id}`);
+  if (!res.ok) throw new Error('Erro ao buscar ordem');
+  return res.json();
+}
+
+export async function updateOrder(id: number, data: CreateOrderDto): Promise<Order> {
+  const res = await fetch(`http://localhost:3000/orders/${id}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) throw new Error('Erro ao atualizar ordem');
   return res.json();
 }
 
