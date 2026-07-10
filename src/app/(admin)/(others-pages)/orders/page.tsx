@@ -38,6 +38,14 @@ export default function Orders() {
     <div>
       <PageBreadcrumb pageTitle="Ordens de Venda" />
       <div className="space-y-6">
+        <div className="flex justify-end">
+          <button
+            onClick={() => router.push('/orders/new')}
+            className="h-10 rounded-lg bg-brand-500 px-5 text-sm text-white hover:bg-brand-600"
+          >
+            + Nova Ordem
+          </button>
+        </div>
         <ComponentCard>
           <OrdersFilters filters={filters} onChange={handleFiltersChange} />
           {isLoading && (

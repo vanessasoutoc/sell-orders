@@ -41,6 +41,24 @@ export interface PaginatedOrders {
   totalPages: number;
 }
 
+export interface Item {
+  id: number;
+  name: string;
+  description: string;
+}
+
+export interface CreateOrderItemDto {
+  itemId: number;
+  quantity: number;
+}
+
+export interface CreateOrderDto {
+  customerId: number;
+  transportTypeId: number;
+  orderStatusId: number;
+  items: CreateOrderItemDto[];
+}
+
 export interface OrderFilters {
   orderStatusId?: number;
   customerId?: number;
@@ -67,11 +85,20 @@ export async function getOrderStatuses(): Promise<OrderStatus[]> {
   return json.data;
 }
 
-export async function getCustomers(): Promise<Customer[]> {
-  const res = await fetch('http://localhost:3000/customers?page=1&limit=100');
+export async function getCustomers(page = 1, limit = 10, search = ''): Promise<{ data: Customer[]; totalPages: number }> {
+  const params = new URLSearchParams({ page: String(page), limit: String(limit) });
+  if (search) params.set('name', search);
+  const res = await fetch(`http://localhost:3000/customers?${params.toString()}`);
   if (!res.ok) throw new Error('Erro ao buscar clientes');
-  const json = await res.json();
-  return json.data;
+  return res.json();
+}
+
+export async function searchCustomers(page = 1, search = ''): Promise<{ data: Customer[]; totalPages: number }> {
+  const params = new URLSearchParams({ page: String(page), limit: '10' });
+  if (search) params.set('search', search);
+  const res = await fetch(`http://localhost:3000/customers/autocomplete?${params.toString()}`);
+  if (!res.ok) throw new Error('Erro ao buscar clientes');
+  return res.json();
 }
 
 export async function getTransportTypes(): Promise<TransportType[]> {
@@ -79,4 +106,36 @@ export async function getTransportTypes(): Promise<TransportType[]> {
   if (!res.ok) throw new Error('Erro ao buscar tipos de transporte');
   const json = await res.json();
   return json.data;
+}
+
+export async function getAuthorizedTransportTypes(customerId: number): Promise<TransportType[]> {
+  const res = await fetch(`http://localhost:3000/customers/${customerId}/transport-types/active`);
+  if (!res.ok) throw new Error('Erro ao buscar transportes autorizados');
+  return res.json();
+}
+
+export async function getItems(page = 1, limit = 10, search = ''): Promise<{ data: Item[]; totalPages: number }> {
+  const params = new URLSearchParams({ page: String(page), limit: String(limit) });
+  if (search) params.set('name', search);
+  const res = await fetch(`http://localhost:3000/items?${params.toString()}`);
+  if (!res.ok) throw new Error('Erro ao buscar itens');
+  return res.json();
+}
+
+export async function searchItems(page = 1, search = ''): Promise<{ data: Item[]; totalPages: number }> {
+  const params = new URLSearchParams({ page: String(page), limit: '10' });
+  if (search) params.set('search', search);
+  const res = await fetch(`http://localhost:3000/items/autocomplete?${params.toString()}`);
+  if (!res.ok) throw new Error('Erro ao buscar itens');
+  return res.json();
+}
+
+export async function createOrder(data: CreateOrderDto): Promise<Order> {
+  const res = await fetch('http://localhost:3000/orders', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) throw new Error('Erro ao criar ordem');
+  return res.json();
 }

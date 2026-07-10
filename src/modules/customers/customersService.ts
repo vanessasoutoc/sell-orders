@@ -3,10 +3,6 @@ export interface Customer {
   name: string;
   cellphone: string;
   email: string;
-  address: string;
-  district: string;
-  city: string;
-  state: string;
 }
 
 export interface PaginatedCustomers {

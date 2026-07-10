@@ -28,7 +28,7 @@ export default function CustomersTable({ data, totalPages, currentPage }: Props)
           <Table>
             <TableHeader className="border-b border-gray-100 dark:border-white/[0.05]">
               <TableRow>
-                {['Nome', 'E-mail', 'Telefone', 'Endereço', 'Bairro', 'Cidade', 'UF'].map((h) => (
+                {['Nome', 'E-mail', 'Telefone'].map((h) => (
                   <TableCell
                     key={h}
                     isHeader
@@ -52,10 +52,6 @@ export default function CustomersTable({ data, totalPages, currentPage }: Props)
                     <TableCell className="px-5 py-4 text-gray-800 text-theme-sm dark:text-white/90">{customer.name}</TableCell>
                     <TableCell className="px-4 py-3 text-gray-500 text-theme-sm dark:text-gray-400">{customer.email}</TableCell>
                     <TableCell className="px-4 py-3 text-gray-500 text-theme-sm dark:text-gray-400">{customer.cellphone}</TableCell>
-                    <TableCell className="px-4 py-3 text-gray-500 text-theme-sm dark:text-gray-400">{customer.address}</TableCell>
-                    <TableCell className="px-4 py-3 text-gray-500 text-theme-sm dark:text-gray-400">{customer.district}</TableCell>
-                    <TableCell className="px-4 py-3 text-gray-500 text-theme-sm dark:text-gray-400">{customer.city}</TableCell>
-                    <TableCell className="px-4 py-3 text-gray-500 text-theme-sm dark:text-gray-400">{customer.state}</TableCell>
                   </TableRow>
                 ))
               )}
