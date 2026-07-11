@@ -15,7 +15,7 @@ jobs:
 
     strategy:
       matrix:
-        node-version: [22]
+        node-version: [24]
 
     steps:
       - name: Checkout repository
@@ -26,9 +26,12 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
           cache: npm
+          cache-dependency-path: front-end/package-lock.json
 
       - name: Install dependencies
+        working-directory: front-end
         run: npm ci
 
       - name: Run Unit Tests
+        working-directory: front-end
         run: npm test
