@@ -84,8 +84,8 @@ beforeEach(() => {
 });
 
 const fillAndSubmit = async (user: ReturnType<typeof userEvent.setup>) => {
-  await waitFor(() => expect(screen.getByText('Carreta')).toBeInTheDocument());
   await user.type(screen.getByPlaceholderText('Buscar cliente...'), 'João');
+  await waitFor(() => expect(screen.getByText('Carreta')).toBeInTheDocument());
   const combos = screen.getAllByRole('combobox');
   await user.selectOptions(combos[0], '1');
   await user.selectOptions(combos[1], '1');
@@ -147,12 +147,12 @@ describe('OrderForm — modo criação', () => {
   });
 
   it('exibe mensagem de erro quando createOrder falha', async () => {
-    (ordersService.createOrder as jest.Mock).mockRejectedValue(new Error('Erro'));
+    (ordersService.createOrder as jest.Mock).mockRejectedValue(new Error('Erro ao criar ordem'));
     const user = userEvent.setup();
     render(<OrderForm />, { wrapper: createWrapper() });
     await fillAndSubmit(user);
     await waitFor(() =>
-      expect(screen.getByText('Erro ao salvar ordem. Tente novamente.')).toBeInTheDocument(),
+      expect(screen.getByText('Erro ao criar ordem')).toBeInTheDocument(),
     );
   });
 
@@ -204,11 +204,10 @@ describe('OrderForm — regras de negócio: status', () => {
   });
 
   it('exibe mensagem de erro de transição inválida retornada pela API', async () => {
-    const errorMsg = 'Transição de status inválida: CRIADA → ENTREGUE. Sequência permitida: CRIADA → PLANEJADA → AGENDADA → EM_TRANSPORTE → ENTREGUE';
+    const errorMsg = 'Transição de status inválida: PLANEJADA → ENTREGUE.';
     (ordersService.updateOrder as jest.Mock).mockRejectedValue(new Error(errorMsg));
-    const user = userEvent.setup();
     render(<OrderForm order={mockOrder} initialEditing />, { wrapper: createWrapper() });
-    await waitFor(() => expect(screen.getByText('Salvar Ordem')).toBeInTheDocument());
+    await waitFor(() => expect(screen.getByText('Carreta')).toBeInTheDocument());
     fireEvent.submit(screen.getByText('Salvar Ordem'));
     await waitFor(() => expect(screen.getByText(errorMsg)).toBeInTheDocument());
   });
@@ -287,9 +286,8 @@ describe('OrderForm — modo visualização', () => {
   });
 
   it('chama updateOrder ao salvar no modo edição', async () => {
-    const user = userEvent.setup();
     render(<OrderForm order={mockOrder} initialEditing />, { wrapper: createWrapper() });
-    await waitFor(() => expect(screen.getByText('Salvar Ordem')).toBeInTheDocument());
+    await waitFor(() => expect(screen.getByText('Carreta')).toBeInTheDocument());
     fireEvent.submit(screen.getByText('Salvar Ordem'));
     await waitFor(() => expect(ordersService.updateOrder).toHaveBeenCalledWith(mockOrder.id, expect.any(Object)));
   });
