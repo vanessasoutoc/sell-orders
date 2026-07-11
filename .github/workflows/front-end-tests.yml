@@ -1,4 +1,4 @@
-name: Unit Tests
+name: Tests
 
 on:
   push:
@@ -32,6 +32,6 @@ jobs:
         working-directory: front-end
         run: npm ci
 
-      - name: Run Unit Tests
+      - name: Run Tests
         working-directory: front-end
         run: npm test
