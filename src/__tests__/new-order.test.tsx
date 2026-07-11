@@ -13,6 +13,10 @@ jest.mock('next/navigation', () => ({
 
 jest.mock('@/modules/orders/ordersService');
 
+jest.mock('@/icons', () => ({
+  PencilIcon: () => null,
+}));
+
 jest.mock('@/components/ui/autocomplete/Autocomplete', () => ({
   __esModule: true,
   default: ({
@@ -100,10 +104,9 @@ describe('OrderForm — modo criação', () => {
 
   it('popula os selects de transporte e status', async () => {
     render(<OrderForm />, { wrapper: createWrapper() });
-    await waitFor(() => expect(screen.getByText('Carreta')).toBeInTheDocument());
-    expect(screen.getByText('Caminhão')).toBeInTheDocument();
-    expect(screen.getByText('Criada')).toBeInTheDocument();
-    expect(screen.getByText('Planejada')).toBeInTheDocument();
+    // em modo criação, transportes só carregam após selecionar cliente
+    await waitFor(() => expect(screen.getByText('Criada')).toBeInTheDocument());
+    expect(screen.queryByText('Planejada')).not.toBeInTheDocument();
   });
 
   it('adiciona nova linha de item ao clicar em + Adicionar item', () => {
@@ -158,6 +161,103 @@ describe('OrderForm — modo criação', () => {
     render(<OrderForm />, { wrapper: createWrapper() });
     await fillAndSubmit(user);
     await waitFor(() => expect(mockPush).toHaveBeenCalledWith('/orders'));
+  });
+});
+
+describe('OrderForm — regras de negócio: status', () => {
+  it('exibe apenas CRIADA no select de status para nova ordem', async () => {
+    render(<OrderForm />, { wrapper: createWrapper() });
+    await waitFor(() => expect(screen.getByText('Criada')).toBeInTheDocument());
+    expect(screen.queryByText('Planejada')).not.toBeInTheDocument();
+  });
+
+  it('exibe status atual e próximo no select ao editar ordem CRIADA', async () => {
+    const order = {
+      ...mockOrder,
+      orderStatusId: 1,
+      orderStatus: { id: 1, name: 'Criada', status: 'CRIADA' },
+    };
+    render(<OrderForm order={order} initialEditing />, { wrapper: createWrapper() });
+    await waitFor(() => expect(screen.getByText('Criada')).toBeInTheDocument());
+    expect(screen.getByText('Planejada')).toBeInTheDocument();
+  });
+
+  it('não exibe status que pulam etapas ao editar ordem CRIADA', async () => {
+    const allStatuses = [
+      { id: 1, name: 'Criada', status: 'CRIADA' },
+      { id: 2, name: 'Planejada', status: 'PLANEJADA' },
+      { id: 3, name: 'Agendada', status: 'AGENDADA' },
+      { id: 4, name: 'Em Transporte', status: 'EM_TRANSPORTE' },
+      { id: 5, name: 'Entregue', status: 'ENTREGUE' },
+    ];
+    (ordersService.getOrderStatuses as jest.Mock).mockResolvedValue(allStatuses);
+    const order = {
+      ...mockOrder,
+      orderStatusId: 1,
+      orderStatus: { id: 1, name: 'Criada', status: 'CRIADA' },
+    };
+    render(<OrderForm order={order} initialEditing />, { wrapper: createWrapper() });
+    await waitFor(() => expect(screen.getByText('Criada')).toBeInTheDocument());
+    expect(screen.queryByText('Agendada')).not.toBeInTheDocument();
+    expect(screen.queryByText('Em Transporte')).not.toBeInTheDocument();
+    expect(screen.queryByText('Entregue')).not.toBeInTheDocument();
+  });
+
+  it('exibe mensagem de erro de transição inválida retornada pela API', async () => {
+    const errorMsg = 'Transição de status inválida: CRIADA → ENTREGUE. Sequência permitida: CRIADA → PLANEJADA → AGENDADA → EM_TRANSPORTE → ENTREGUE';
+    (ordersService.updateOrder as jest.Mock).mockRejectedValue(new Error(errorMsg));
+    const user = userEvent.setup();
+    render(<OrderForm order={mockOrder} initialEditing />, { wrapper: createWrapper() });
+    await waitFor(() => expect(screen.getByText('Salvar Ordem')).toBeInTheDocument());
+    fireEvent.submit(screen.getByText('Salvar Ordem'));
+    await waitFor(() => expect(screen.getByText(errorMsg)).toBeInTheDocument());
+  });
+});
+
+describe('OrderForm — regras de negócio: itens e transporte', () => {
+  it('exibe erro ao tentar salvar sem nenhum item válido', async () => {
+    const user = userEvent.setup();
+    render(<OrderForm />, { wrapper: createWrapper() });
+    await user.type(screen.getByPlaceholderText('Buscar cliente...'), 'João');
+    const combos = screen.getAllByRole('combobox');
+    await user.selectOptions(combos[1], '1'); // status
+    fireEvent.submit(screen.getByText('Salvar Ordem'));
+    await waitFor(() =>
+      expect(screen.getByText('Adicione pelo menos 1 item à ordem.')).toBeInTheDocument(),
+    );
+    expect(ordersService.createOrder).not.toHaveBeenCalled();
+  });
+
+  it('exibe mensagem de erro de transporte não autorizado retornada pela API', async () => {
+    const errorMsg = 'Tipo de transporte 2 não está ativo/autorizado para o cliente 1';
+    (ordersService.createOrder as jest.Mock).mockRejectedValue(new Error(errorMsg));
+    const user = userEvent.setup();
+    render(<OrderForm />, { wrapper: createWrapper() });
+    await fillAndSubmit(user);
+    await waitFor(() => expect(screen.getByText(errorMsg)).toBeInTheDocument());
+  });
+
+  it('exibe mensagem de erro genérica quando a API retorna erro sem mensagem', async () => {
+    (ordersService.createOrder as jest.Mock).mockRejectedValue(new Error());
+    const user = userEvent.setup();
+    render(<OrderForm />, { wrapper: createWrapper() });
+    await fillAndSubmit(user);
+    await waitFor(() =>
+      expect(screen.getByText('Erro ao salvar ordem. Tente novamente.')).toBeInTheDocument(),
+    );
+  });
+
+  it('limpa o erro de API ao submeter novamente com sucesso', async () => {
+    (ordersService.createOrder as jest.Mock)
+      .mockRejectedValueOnce(new Error('Erro temporário'))
+      .mockResolvedValueOnce(mockCreatedOrder);
+    const user = userEvent.setup();
+    render(<OrderForm />, { wrapper: createWrapper() });
+    await fillAndSubmit(user);
+    await waitFor(() => expect(screen.getByText('Erro temporário')).toBeInTheDocument());
+    await fillAndSubmit(user);
+    await waitFor(() => expect(mockPush).toHaveBeenCalledWith('/orders'));
+    expect(screen.queryByText('Erro temporário')).not.toBeInTheDocument();
   });
 });
 
