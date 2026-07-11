@@ -51,6 +51,7 @@ export default function OrderForm({ order, initialEditing }: Props) {
   const router = useRouter();
   const isNew = !order;
   const [editing, setEditing] = useState(initialEditing ?? isNew);
+  const [itemsError, setItemsError] = useState<string | null>(null);
 
   const {
     control,
@@ -106,6 +107,12 @@ export default function OrderForm({ order, initialEditing }: Props) {
 
   const onSubmit = (data: FormValues) => {
     if (!data.customer) return;
+    const validItems = data.items.filter((r) => r.item !== null);
+    if (validItems.length < 1) {
+      setItemsError('Adicione pelo menos 1 item à ordem.');
+      return;
+    }
+    setItemsError(null);
     mutation.mutate(data);
   };
 
@@ -254,6 +261,8 @@ export default function OrderForm({ order, initialEditing }: Props) {
                 </div>
               ))}
             </div>
+
+            {itemsError && <p className={errorClass}>{itemsError}</p>}
           </div>
 
           {mutation.isError && (

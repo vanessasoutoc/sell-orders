@@ -1,3 +1,5 @@
+import { Appointment } from "../appointments/appointmentsService";
+
 export interface OrderStatus {
   id: number;
   name: string;
@@ -30,6 +32,7 @@ export interface Order {
   orderStatusId: number;
   orderStatus: OrderStatus;
   items: OrderItem[];
+  appointment: Appointment | null;
   createdAt: string;
 }
 

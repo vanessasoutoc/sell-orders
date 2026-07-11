@@ -2,24 +2,25 @@
 
 import { useState } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import ComponentCard from '@/components/common/ComponentCard';
 import PageBreadcrumb from '@/components/common/PageBreadCrumb';
 import OrdersTable from '@/modules/orders/OrdersTable';
 import OrdersFilters from '@/modules/orders/OrdersFilters';
 import { getOrders, OrderFilters } from '@/modules/orders/ordersService';
+import { getAppointments } from '@/modules/appointments/appointmentsService';
+import AppointmentsTable from '@/modules/appointments/AppointmentsTable';
 
-export default function Orders() {
+export default function Appointments() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const currentPage = Number(searchParams.get('page')) || 1;
 
-  const [filters, setFilters] = useState<OrderFilters>({});
-  const queryClient = useQueryClient();
+  // const [filters, setFilters] = useState<OrderFilters>({});
 
   const { data, isLoading, isError } = useQuery({
-    queryKey: ['orders', currentPage, filters],
-    queryFn: () => getOrders(currentPage, 10, filters),
+    queryKey: ['appointments', currentPage],
+    queryFn: () => getAppointments(currentPage, 10),
   });
 
   const handlePageChange = (page: number) => {
@@ -29,7 +30,7 @@ export default function Orders() {
   };
 
   const handleFiltersChange = (newFilters: OrderFilters) => {
-    setFilters(newFilters);
+    // setFilters(newFilters);
     const params = new URLSearchParams(searchParams.toString());
     params.set('page', '1');
     router.push(`?${params.toString()}`);
@@ -37,18 +38,18 @@ export default function Orders() {
 
   return (
     <div>
-      <PageBreadcrumb pageTitle="Ordens de Venda" />
+      <PageBreadcrumb pageTitle="Central de Agendamento" />
       <div className="space-y-6">
         <div className="flex justify-end">
           <button
-            onClick={() => router.push('/orders/new')}
+            onClick={() => router.push('/appointments/new')}
             className="h-10 rounded-lg bg-brand-500 px-5 text-sm text-white hover:bg-brand-600"
           >
-            + Nova Ordem
+            + Nova Agendamento
           </button>
         </div>
         <ComponentCard>
-          <OrdersFilters filters={filters} onChange={handleFiltersChange} />
+          {/* <OrdersFilters filters={filters} onChange={handleFiltersChange} /> */}
           {isLoading && (
             <p className="py-6 text-center text-gray-500 text-theme-sm dark:text-gray-400">Carregando...</p>
           )}
@@ -56,12 +57,11 @@ export default function Orders() {
             <p className="py-6 text-center text-red-500 text-theme-sm">Erro ao carregar ordens.</p>
           )}
           {data && (
-            <OrdersTable
+            <AppointmentsTable
               data={data.data}
               totalPages={data.totalPages}
               currentPage={currentPage}
               onPageChange={handlePageChange}
-              onAppointment={() => queryClient.invalidateQueries({ queryKey: ['orders'], exact: false })}
             />
           )}
         </ComponentCard>

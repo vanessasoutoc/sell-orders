@@ -1,16 +1,20 @@
 'use client';
 
+import { useState } from 'react';
 import { Table, TableBody, TableCell, TableHeader, TableRow } from '@/components/ui/table';
 import Pagination from '@/components/tables/Pagination';
 import Badge from '@/components/ui/badge/Badge';
 import { Order } from './ordersService';
 import { EyeIcon, PencilIcon } from '@/icons';
+import AppointmentModal from './AppointmentModal';
+import ConfirmAppointmentModal from './ConfirmAppointmentModal';
 
 interface Props {
   data: Order[];
   totalPages: number;
   currentPage: number;
   onPageChange: (page: number) => void;
+  onAppointment?: () => void;
 }
 
 const statusColor: Record<string, 'success' | 'warning' | 'error' | 'info'> = {
@@ -21,7 +25,10 @@ const statusColor: Record<string, 'success' | 'warning' | 'error' | 'info'> = {
   ENTREGUE: 'success'
 };
 
-export default function OrdersTable({ data, totalPages, currentPage, onPageChange }: Props) {
+export default function OrdersTable({ data, totalPages, currentPage, onPageChange, onAppointment }: Props) {
+  const [appointmentOrder, setAppointmentOrder] = useState<Order | null>(null);
+  const [confirmingOrder, setConfirmingOrder] = useState<Order | null>(null);
+
   return (
     <div>
       <div className="overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-white/[0.05] dark:bg-white/[0.03]">
@@ -85,13 +92,23 @@ export default function OrdersTable({ data, totalPages, currentPage, onPageChang
                       >
                         <PencilIcon/>
                       </a>
-                      {order.orderStatus?.status === 'PLANEJADA' && (
-                        <a
-                          href={`/orders/${order.id}`}
-                          className="text-brand-500 hover:underline dark:text-brand-400"
+                      {order.orderStatus?.status === 'PLANEJADA' && !order.appointment && (
+                        <button
+                          type="button"
+                          onClick={() => setAppointmentOrder(order)}
+                          className="text-brand-500 hover:underline dark:text-brand-400 text-theme-sm"
                         >
                           Agendar
-                        </a>
+                        </button>
+                      )}
+                      {order.orderStatus?.status === 'PLANEJADA' && order.appointment && (
+                        <button
+                          type="button"
+                          onClick={() => setConfirmingOrder(order)}
+                          className="text-green-500 hover:underline dark:text-green-400 text-theme-sm"
+                        >
+                          Confirmar
+                        </button>
                       )}
                     </TableCell>
                   </TableRow>
@@ -101,6 +118,27 @@ export default function OrdersTable({ data, totalPages, currentPage, onPageChang
           </Table>
         </div>
       </div>
+      {confirmingOrder?.appointment && (
+        <ConfirmAppointmentModal
+          appointment={confirmingOrder.appointment}
+          orderId={confirmingOrder.id}
+          onClose={() => setConfirmingOrder(null)}
+          onSuccess={() => {
+            setConfirmingOrder(null);
+            onAppointment?.();
+          }}
+        />
+      )}
+      {appointmentOrder && (
+        <AppointmentModal
+          order={appointmentOrder}
+          onClose={() => setAppointmentOrder(null)}
+          onSuccess={() => {
+            setAppointmentOrder(null);
+            onAppointment?.();
+          }}
+        />
+      )}
       {totalPages > 1 && (
         <div className="px-5 py-4 sm:px-6">
           <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={onPageChange} />
