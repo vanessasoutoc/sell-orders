@@ -147,7 +147,10 @@ export async function updateOrder(id: number, data: CreateOrderDto): Promise<Ord
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data),
   });
-  if (!res.ok) throw new Error('Erro ao atualizar ordem');
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new Error(body?.message ?? 'Erro ao atualizar ordem');
+  }
   return res.json();
 }
 
@@ -157,6 +160,9 @@ export async function createOrder(data: CreateOrderDto): Promise<Order> {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data),
   });
-  if (!res.ok) throw new Error('Erro ao criar ordem');
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new Error(body?.message ?? 'Erro ao criar ordem');
+  }
   return res.json();
 }

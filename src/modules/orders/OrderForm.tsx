@@ -51,7 +51,6 @@ export default function OrderForm({ order, initialEditing }: Props) {
   const router = useRouter();
   const isNew = !order;
   const [editing, setEditing] = useState(initialEditing ?? isNew);
-  const [itemsError, setItemsError] = useState<string | null>(null);
 
   const {
     control,
@@ -82,6 +81,21 @@ export default function OrderForm({ order, initialEditing }: Props) {
 
   const { data: statuses } = useQuery({ queryKey: ['order-statuses'], queryFn: getOrderStatuses });
 
+  const STATUS_FLOW: Record<string, string> = {
+    CRIADA: 'PLANEJADA',
+    PLANEJADA: 'AGENDADA',
+    AGENDADA: 'EM_TRANSPORTE',
+    EM_TRANSPORTE: 'ENTREGUE',
+  };
+
+  const allowedStatuses = statuses?.filter((s) => {
+    if (isNew) return s.status === 'CRIADA';
+    if (!order) return true;
+    const current = order.orderStatus.status;
+    const next = STATUS_FLOW[current];
+    return s.status === current || s.status === next;
+  });
+
   const { fields, append, remove } = useFieldArray({ control, name: 'items' });
 
   // re-apply form values after queries load so selects render with correct selected option
@@ -91,6 +105,9 @@ export default function OrderForm({ order, initialEditing }: Props) {
       setValue('orderStatusId', String(order.orderStatusId));
     }
   }, [transportTypes, statuses]);
+
+  const [itemsError, setItemsError] = useState<string | null>(null);
+  const [apiError, setApiError] = useState<string | null>(null);
 
   const mutation = useMutation({
     mutationFn: (data: FormValues) => {
@@ -103,6 +120,10 @@ export default function OrderForm({ order, initialEditing }: Props) {
       return isNew ? createOrder(payload) : updateOrder(order!.id, payload);
     },
     onSuccess: () => router.push('/orders'),
+    onError: (err: any) => {
+      const msg = Array.isArray(err?.message) ? err.message.join(', ') : (err?.message ?? 'Erro ao salvar ordem. Tente novamente.');
+      setApiError(msg);
+    },
   });
 
   const onSubmit = (data: FormValues) => {
@@ -113,6 +134,7 @@ export default function OrderForm({ order, initialEditing }: Props) {
       return;
     }
     setItemsError(null);
+    setApiError(null);
     mutation.mutate(data);
   };
 
@@ -186,7 +208,7 @@ export default function OrderForm({ order, initialEditing }: Props) {
                 {...register('orderStatusId', { required: 'Selecione o status' })}
               >
                 <option value="">Selecione...</option>
-                {statuses?.map((s) => (
+                {allowedStatuses?.map((s) => (
                   <option key={s.id} value={s.id}>{s.name}</option>
                 ))}
               </select>
@@ -261,12 +283,11 @@ export default function OrderForm({ order, initialEditing }: Props) {
                 </div>
               ))}
             </div>
-
             {itemsError && <p className={errorClass}>{itemsError}</p>}
           </div>
 
-          {mutation.isError && (
-            <p className="text-sm text-red-500">Erro ao salvar ordem. Tente novamente.</p>
+          {apiError && (
+            <p className="text-sm text-red-500">{apiError}</p>
           )}
 
           <div className="flex justify-end gap-3">
