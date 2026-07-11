@@ -1,5 +1,7 @@
 # Sistema de Ordens de Venda
 
+[![Front-end Tests](https://github.com/vanessasoutoc/sell-orders/actions/workflows/front-end-tests.yml/badge.svg)](https://github.com/vanessasoutoc/sell-orders/actions/workflows/front-end-tests.yml)
+
 Projeto para Gestão de ordens de venda, com controle de clientes, transportes, agendamentos e auditoria de operações.
 
 **OBS: O teste é pra vaga de front-end, entretanto eu achei interessante criar o backend.
