@@ -1,6 +1,6 @@
 services:
   api:
-    container_name: ovgs-api
+    container_name: api
     build:
       context: ./api
       dockerfile: Dockerfile
@@ -21,18 +21,20 @@ services:
   frontend:
     container_name: front-end
     build:
-      context: ./frontend
+      context: ./front-end
       dockerfile: Dockerfile
     working_dir: /app
     command: npm run dev
     volumes:
-      - ./frontend:/app
+      - ./front-end:/app
       - /app/node_modules
       - /app/.next
     env_file:
-      - ./frontend/.env.local
+      - ./front-end/.env.local
+    environment:
+      - API_URL=http://api:3000
     ports:
-      - "3001:3000"
+      - "3001:3001"
     depends_on:
       - api
     restart: unless-stopped

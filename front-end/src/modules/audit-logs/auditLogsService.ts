@@ -1,3 +1,5 @@
+import { getApiBaseUrl } from '../../lib/api';
+
 export interface AuditLog {
   id: number;
   entity: string;
@@ -21,7 +23,7 @@ export interface PaginatedAuditLogs {
 
 export async function getAuditLogs(page = 1, limit = 10): Promise<PaginatedAuditLogs> {
   const params = new URLSearchParams({ page: String(page), limit: String(limit) });
-  const res = await fetch(`http://localhost:3000/audit-logs?${params.toString()}`);
+  const res = await fetch(`${getApiBaseUrl()}/audit-logs?${params.toString()}`);
   if (!res.ok) throw new Error('Erro ao buscar logs de auditoria');
   return res.json();
 }

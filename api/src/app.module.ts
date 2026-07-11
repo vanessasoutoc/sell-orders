@@ -12,7 +12,7 @@ import { OrdersModule } from './modules/orders/orders.module';
 import { AppointmentsModule } from './modules/appointments/appointments.module';
 import { AppointmentStatusModule } from './modules/appointment-status/appointment-status.module';
 import { AuditLogsModule } from './modules/audit-logs/audit-logs.module';
-import { DashboardModule } from './modules/dashboard/dashboard.module';
+import { SummaryModule } from './modules/summary/summary.module';
 
 @Module({
   imports: [
@@ -25,7 +25,7 @@ import { DashboardModule } from './modules/dashboard/dashboard.module';
     AppointmentsModule,
     AppointmentStatusModule,
     AuditLogsModule,
-    DashboardModule,
+    SummaryModule,
     ConfigModule.forRoot({
       isGlobal: true,
     }),

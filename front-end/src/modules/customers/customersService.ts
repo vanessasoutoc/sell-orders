@@ -1,3 +1,5 @@
+import { getApiBaseUrl } from '../../lib/api';
+
 export interface Customer {
   id: number;
   name: string;
@@ -14,7 +16,7 @@ export interface PaginatedCustomers {
 }
 
 export async function getCustomers(page = 1, limit = 10): Promise<PaginatedCustomers> {
-  const res = await fetch(`http://localhost:3000/customers?page=${page}&limit=${limit}`, {
+  const res = await fetch(`${getApiBaseUrl()}/customers?page=${page}&limit=${limit}`, {
     cache: 'no-store',
   });
   if (!res.ok) throw new Error('Erro ao buscar clientes');

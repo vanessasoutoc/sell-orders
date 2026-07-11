@@ -3,12 +3,12 @@ import { SequelizeModule } from '@nestjs/sequelize';
 import { Order } from '../orders/order.model';
 import { Customer } from '../customers/customer.model';
 import { Appointment } from '../appointments/appointment.model';
-import { DashboardService } from './dashboard.service';
-import { DashboardController } from './dashboard.controller';
+import { SummaryService } from './summary.service';
+import { SummaryController } from './summary.controller';
 
 @Module({
   imports: [SequelizeModule.forFeature([Order, Customer, Appointment])],
-  controllers: [DashboardController],
-  providers: [DashboardService],
+  controllers: [SummaryController],
+  providers: [SummaryService],
 })
-export class DashboardModule {}
+export class SummaryModule {}

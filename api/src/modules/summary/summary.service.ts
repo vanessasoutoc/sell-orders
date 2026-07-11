@@ -5,7 +5,7 @@ import { Customer } from '../customers/customer.model';
 import { Appointment } from '../appointments/appointment.model';
 
 @Injectable()
-export class DashboardService {
+export class SummaryService {
   constructor(
     @InjectModel(Order) private orderModel: typeof Order,
     @InjectModel(Customer) private customerModel: typeof Customer,

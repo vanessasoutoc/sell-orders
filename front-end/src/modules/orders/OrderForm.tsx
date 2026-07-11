@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { useForm, useFieldArray, Controller } from 'react-hook-form';
+import { useForm, useFieldArray, Controller, useWatch } from 'react-hook-form';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import ComponentCard from '@/components/common/ComponentCard';
 import Autocomplete, { AutocompleteOption } from '@/components/ui/autocomplete/Autocomplete';
@@ -56,7 +56,6 @@ export default function OrderForm({ order, initialEditing }: Props) {
     control,
     register,
     handleSubmit,
-    watch,
     setValue,
     formState: { errors },
   } = useForm<FormValues>({
@@ -68,7 +67,7 @@ export default function OrderForm({ order, initialEditing }: Props) {
     },
   });
 
-  const selectedCustomer = watch('customer');
+  const selectedCustomer = useWatch({ control, name: 'customer' });
 
   const { data: transportTypes } = useQuery({
     queryKey: ['transport-types', editing ? selectedCustomer?.id : 'all'],
@@ -104,7 +103,7 @@ export default function OrderForm({ order, initialEditing }: Props) {
       setValue('transportTypeId', String(order.transportTypeId));
       setValue('orderStatusId', String(order.orderStatusId));
     }
-  }, [transportTypes, statuses]);
+  }, [transportTypes, statuses, order, setValue]);
 
   const [itemsError, setItemsError] = useState<string | null>(null);
   const [apiError, setApiError] = useState<string | null>(null);
@@ -120,7 +119,7 @@ export default function OrderForm({ order, initialEditing }: Props) {
       return isNew ? createOrder(payload) : updateOrder(order!.id, payload);
     },
     onSuccess: () => router.push('/orders'),
-    onError: (err: any) => {
+    onError: (err: Error & { message: string | string[] }) => {
       const msg = Array.isArray(err?.message) ? err.message.join(', ') : (err?.message ?? 'Erro ao salvar ordem. Tente novamente.');
       setApiError(msg);
     },

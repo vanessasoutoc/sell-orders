@@ -1,4 +1,5 @@
 import { Order } from '../orders/ordersService';
+import { getApiBaseUrl } from '../../lib/api';
 
 export interface AppointmentStatus {
   id: number;
@@ -35,7 +36,7 @@ export interface CreateAppointmentDto {
   endTime: string;
 }
 
-const BASE = 'http://localhost:3000';
+const BASE = getApiBaseUrl();
 
 export async function getAppointments(page = 1, limit = 10): Promise<PaginatedAppointments> {
   const params = new URLSearchParams({ page: String(page), limit: String(limit) });
