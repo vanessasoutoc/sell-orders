@@ -52,7 +52,7 @@ docker compose up --build
 
 # a API estará disponível em http://localhost:3000
 # o front-end estará disponível em http://localhost:3001
-# documentação Swagger em http://localhost:3000/api
+# documentação Swagger em http://localhost:3000/docs
 ```
 
 > As variáveis de ambiente do banco já estão pré-configuradas no `docker-compose.yml` (`DB_HOST=mysql`, `DB_USER=nest`, `DB_PASSWORD=nest123`, `DB_NAME=nestdb`). O serviço da API aguarda o MySQL estar saudável antes de iniciar (`depends_on` com `healthcheck`).
